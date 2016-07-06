@@ -10,6 +10,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -33,18 +34,28 @@ public class Parser {
 
         handleInputFiles();
 
-        if(mustWriteJson) writeOutputFile();
+        if(outputFolder != null ) writeOutputFile();
 
     }
 
     private void writeOutputFile() throws IOException {
-        for (String filename : mapFilenameJson.keySet()) {
-            File outputFile = new File(getFilenameWithJsonExtension(filename));
-            logger.info("Writing " + outputFile.getName());
-            Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), encoding.orElse("UTF-8")));
-            fw.write(json);
-            fw.close();
+
+        if(outputFolder.isDirectory()) {
+            for (JsonToProcess jsonToProcess : jsonsToProcess) {
+
+                File outputFile = new File(outputFolder.getPath().concat(File.separator).concat(getFilenameWithJsonExtension(jsonToProcess.inputFile)));
+                logger.info("Writing " + outputFile.getPath());
+
+                Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),jsonToProcess.encoding));
+
+                String json = jsonToProcess.json;
+                fw.write(json);
+                fw.close();
+            }
+        } else {
+            logger.log(Level.SEVERE, "Output folder is not a directory. Aborting");
         }
+
     }
 
     private String getFilenameWithJsonExtension(String filename){
@@ -84,15 +95,14 @@ public class Parser {
 
     private void handleThisFile(File file){
         try {
-            String json = parse(file);
-            mapFilenameJson.put(file.getName(), json);
+            jsonsToProcess.add(parse(file));
         } catch (Exception e) {
             logger.log(Level.SEVERE, "File " + file.getName() + " aborted.");
-            logger.log(Level.SEVERE, e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private String parse(File file) throws FileNotFoundException, JsonProcessingException, DocumentException {
+    private JsonToProcess parse(File file) throws FileNotFoundException, JsonProcessingException, DocumentException {
 
         logger.info("Parsing " + file.getName());
 
@@ -113,31 +123,31 @@ public class Parser {
 
         parser.parse(new FileReader(file));
 
-        json = parser.getJson();
+        String json = parser.getJson();
+        Optional<String> encoding = Optional.ofNullable(parser.getEncoding());
 
-        encoding = Optional.ofNullable(parser.getEncoding());
-        logger.info("Encoding : " + encoding);
 
-        logger.info(json);
+        JsonToProcess jsonToProcess = new JsonToProcess();
+        jsonToProcess.inputFile = file.getName();
+        jsonToProcess.json = json;
+        jsonToProcess.encoding = encoding.orElse("iso-8859-1");
 
-        return json;
+        return jsonToProcess;
     }
 
     private String getFileExtension(String filename){
         return filename.substring(filename.lastIndexOf('.'), filename.length());
     }
 
-    private HashMap<String, String> mapFilenameJson = new HashMap<String, String>();
+    private ArrayList<JsonToProcess> jsonsToProcess = new ArrayList<JsonToProcess>();
 
-    Optional<String> encoding;
 
-    private String json = new String();
 
     @Option(name="-i",usage="Input file",metaVar="INPUT")
     private File inputFile = null;
 
-    @Option(name="-w",usage="Writes parsed json into a file .json")
-    private Boolean mustWriteJson = false;
+    @Option(name="-w",usage="Output folder",metaVar="OUTPUT")
+    private File outputFolder = null;
 
     @Option(name="-s",usage="Sends the json to the given API via HTTP PUT")
     private String apiUrl;

@@ -33,16 +33,11 @@ public class TestEnGardeParser {
 
         CompetitionInformations competitionInformations = parser.getCompetitionInformations();
 
-        assertThat(competitionInformations.championship).isEqualTo("FFE");
         assertThat(competitionInformations.date).isEqualTo("2016-05-15");
         assertThat(competitionInformations.weapon).isEqualTo("S");
         assertThat(competitionInformations.gender).isEqualTo("F");
-        assertThat(competitionInformations.federeation).isEqualTo("FFE");
         assertThat(competitionInformations.weapon).isEqualTo("S");
-        assertThat(competitionInformations.organizer).isEqualTo("Thonon");
-        assertThat(competitionInformations.category).isEqualTo("C");
         assertThat(competitionInformations.title).isEqualTo("Championnat de France");
-        assertThat(competitionInformations.organizerUrl).isEqualTo("http://francethononescrimeclub.weebly.com");
 
         //<CompetitionParEquipes Championnat="FFE" ID="26182" Annee="2015/2016" Arme="S" Sexe="F" Federation="FFE" Organisateur="Thonon" Categorie="C" Date="15.05.2016" TitreCourt="SDC-eq" TitreLong="Championnat de France" URLorganisateur="http://francethononescrimeclub.weebly.com" >
 
@@ -53,7 +48,12 @@ public class TestEnGardeParser {
     public void canExtractTeams() throws DocumentException {
         initializeParser();
         List<Team> teams =  parser.getTeams();
+        Team team = teams.get(0);
+
+        assertThat(team.name).isEqualTo("BORDEAUX CAM 1");
+        assertThat(team.clubName).isEqualTo("BORDEAUX CAM");
         assertThat(teams.size()).isEqualTo(17);
+
     }
 
     @Test
@@ -65,7 +65,7 @@ public class TestEnGardeParser {
         Team team = teams.get(0);
 
         assertThat(team.athletes.get(0).localId).isEqualTo("29");
-        assertThat(team.athletes.get(0).lastName).isEqualTo("CARRE");
+        assertThat(team.athletes.get(0).lastName).isEqualTo("Carre");
         assertThat(team.athletes.get(0).firstName).isEqualTo("Adele");
         assertThat(team.athletes.get(0).sex).isEqualTo(EnGardeParser.FEMALE_IN_JSON);
         assertThat(team.athletes.get(0).countryCode).isEqualTo("FRA");
@@ -73,6 +73,20 @@ public class TestEnGardeParser {
         assertThat(teams.size()).isEqualTo(1);
     }
 
+
+    @Test
+    public void canFormatNames() throws DocumentException {
+        parser = EnGardeParser.create();
+        Reader fakeXMLReader = TestFactories.xml().oneTeamCompetition();
+        parser.parse(fakeXMLReader);
+        List<Team> teams =  parser.getTeams();
+        Team team = teams.get(0);
+
+        //Name = TOTO du bord de-la-plage
+        assertThat(team.athletes.get(1).lastName).isEqualTo("Toto Du Bord De-La-Plage");
+        assertThat(team.athletes.get(1).firstName).isEqualTo("Elsa");
+
+    }
 
     public void initializeParser() throws DocumentException {
         parser = EnGardeParser.create();

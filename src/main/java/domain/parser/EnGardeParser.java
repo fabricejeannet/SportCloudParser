@@ -19,8 +19,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by fabricejeannet on 06/06/2016.
@@ -50,16 +51,10 @@ public class EnGardeParser implements SportCloudParser {
 
     public CompetitionInformations getCompetitionInformations(){
         CompetitionInformations competitionInformations = new CompetitionInformations();
-        Optional<String> optionalChampionship = Optional.ofNullable(root.attributeValue(CHAMPIONSHIP));
-        competitionInformations.championship = optionalChampionship.orElse(UNKNOWN);
         competitionInformations.date = getJSONDate(root.attributeValue(DATE));
-        competitionInformations.federeation = root.attributeValue(FEDERATION);
         competitionInformations.weapon = root.attributeValue(WEAPON);
         competitionInformations.gender = root.attributeValue(GENDER);
-        competitionInformations.organizer = root.attributeValue(ORGANIZER);
-        competitionInformations.category = root.attributeValue(CATEGORY);
         competitionInformations.title = root.attributeValue(TITLE);
-        competitionInformations.organizerUrl = root.attributeValue(ORGANIZER_URL);
         return competitionInformations;
     }
 
@@ -109,11 +104,18 @@ public class EnGardeParser implements SportCloudParser {
 
             fencer.localId = thisFencer.attributeValue(ID);
 
-            fencer.firstName = thisFencer.attributeValue(FIRST_NAME);
-            fencer.lastName = thisFencer.attributeValue(LAST_NAME);
+            fencer.firstName = formatName(thisFencer.attributeValue(FIRST_NAME));
+            fencer.lastName = formatName(thisFencer.attributeValue(LAST_NAME));
 
             String sex = thisFencer.attributeValue(GENDER);
-            fencer.sex = sex.equals(MALE_IN_XML)?MALE_IN_JSON:FEMALE_IN_JSON;
+
+            if(MEN_IN_XML.equals(sex)) {
+                fencer.sex = MALE_IN_JSON;
+            } else if (WOMEN_IN_XML.equals(sex)) {
+                fencer.sex = FEMALE_IN_JSON;
+            } else {
+                fencer.sex = OTHER_IN_JSON;
+            }
 
             fencer.countryCode = thisFencer.attributeValue(COUNTRY_CODE);
 
@@ -122,6 +124,28 @@ public class EnGardeParser implements SportCloudParser {
         return fencers;
     }
 
+
+    public String formatName(String name){
+        if(name != null) {
+            name = name.toLowerCase().trim();
+            char[] chars = name.toCharArray();
+
+            chars[0] = Character.toUpperCase(chars[0]);
+
+            Pattern pattern = Pattern.compile("([\\s]|\\-)");
+            Matcher matcher = pattern.matcher(name);
+
+            while (matcher.find()) {
+                int indexOfSpaceOrHyphen = matcher.start() + 1;
+                Character character = name.charAt(indexOfSpaceOrHyphen);
+                chars[indexOfSpaceOrHyphen] = Character.toUpperCase(character.charValue());
+            }
+
+            return new String(chars);
+        }
+
+        return name;
+    }
 
 
     public String getJson() throws JsonProcessingException {
@@ -134,7 +158,7 @@ public class EnGardeParser implements SportCloudParser {
             competition = new TeamCompetition();
             competition.date = competitionInformations.date;
             competition.name = competitionInformations.title;
-            competition.sportType = FENCING;
+            competition.sportType = getSportTypeFrom(competitionInformations);
 
             ((TeamCompetition)competition).teams = getTeams();
         } else {
@@ -148,38 +172,57 @@ public class EnGardeParser implements SportCloudParser {
         return json;
     }
 
+
+    public String getSportTypeFrom(CompetitionInformations competitionInformations){
+        String sportType = FENCING.concat(".");
+        if(competitionInformations.weapon.equals(EPEE_IN_XML)) sportType = sportType.concat(EPEE_IN_JSON);
+        if(competitionInformations.weapon.equals(FOIL_IN_XML)) sportType =sportType.concat(FOIL_IN_JSON);
+        if(competitionInformations.weapon.equals(SABRE_IN_XML)) sportType =sportType.concat(SABRE_IN_JSON);
+        sportType = sportType.concat(TEAM_IN_JSON);
+        if(competitionInformations.gender.equals(MEN_IN_XML)) sportType =sportType.concat(MEN_IN_JSON);
+        if(competitionInformations.gender.equals(WOMEN_IN_XML)) sportType =sportType.concat(WOMEN_IN_JSON);
+        return sportType;
+    }
+
+
     public String getEncoding() {
         return document.getXMLEncoding();
     }
 
     public static final String ID = "ID";
-    public static final String MALE_IN_XML = "M";
-    public static final String FEMALE_IN_XML = "F";
+
+    public static final String FENCING = "fencing";
+    public static final String MEN_IN_XML = "M";
+    public static final String WOMEN_IN_XML = "F";
+
+    public static final String MEN_IN_JSON = "Men";
+    public static final String WOMEN_IN_JSON = "Women";
     public static final String MALE_IN_JSON = "male";
     public static final String FEMALE_IN_JSON = "female";
-    public static final String FENCING = "fencing";
+    public static final String OTHER_IN_JSON = "other";
+
+    public static final String TEAM_IN_JSON = "Team";
+    public static final String INDIVIDUAL = "Individual";
+    public static final String EPEE_IN_JSON = "epee";
+    public static final String FOIL_IN_JSON = "foil";
+    public static final String SABRE_IN_JSON = "sabre";
+    public static final String EPEE_IN_XML = "E";
+    public static final String FOIL_IN_XML = "F";
+    public static final String SABRE_IN_XML = "S";
     public static final String TEAMS = "Equipes";
     public static final String FENCER = "Tireur";
     public static final String NAME = "Nom";
     public static final String CLUB = "Club";
     public static final String TEAM_COMPETITION = "CompetitionParEquipes";
     public static final String INDIVIDUAL_COMPETITION = "CompetitionIndividuelle";
-    public static final String CHAMPIONSHIP = "Championnat";
     public static final String DATE = "Date";
     public static final String WEAPON = "Arme";
     public static final String GENDER = "Sexe";
-    public static final String FEDERATION = "Federation";
-    public static final String ORGANIZER = "Organisateur";
-    public static final String CATEGORY = "Categorie";
     public static final String TITLE = "TitreLong";
-    public static final String ORGANIZER_URL = "URLorganisateur";
     public static final String FIRST_NAME = "Prenom";
     public static final String LAST_NAME = "Nom";
-    public static final String BIRTH_DATE = "DateNaissance";
-    public static final String HANDEDNESS = "Lateralite";
+
     public static final String COUNTRY_CODE = "Nation";
-    public static final String LEAGUE = "Ligue";
-    public static final String LICENCE_NUMBER = "LicenceNat";
 
     public static final String UNKNOWN = "Unknown";
 

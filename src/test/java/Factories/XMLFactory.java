@@ -25,7 +25,7 @@ public class XMLFactory {
                 "  <Equipes>\n" +
                 "    <Equipe ID=\"9\" Nom=\"BORDEAUX CAM 1\" Nation=\"FRA\" Ligue=\"AQUITAINE\" Club=\"BORDEAUX CAM\" Classement=\"14\" Statut=\"N\" >\n" +
                 "      <Tireur ID=\"29\" Nom=\"CARRE\" Prenom=\"Adele\" DateNaissance=\"12.03.2001\" Sexe=\"F\" Lateralite=\"D\" Nation=\"FRA\" Ligue=\"AQUITAINE\" Club=\"BORDEAUX CAM\" LicenceNat=\"040640210185\" />\n" +
-                "      <Tireur ID=\"30\" Nom=\"GUENOUN\" Prenom=\"Elsa\" DateNaissance=\"19.05.1999\" Sexe=\"F\" Lateralite=\"D\" Nation=\"FRA\" Ligue=\"AQUITAINE\" Club=\"BORDEAUX CAM\" LicenceNat=\"040330280268\" />\n" +
+                "      <Tireur ID=\"30\" Nom=\"TOTO du Bord de-la-plage\" Prenom=\"elsa\" DateNaissance=\"19.05.1999\" Sexe=\"F\" Lateralite=\"D\" Nation=\"FRA\" Ligue=\"AQUITAINE\" Club=\"BORDEAUX CAM\" LicenceNat=\"040330280268\" />\n" +
                 "      <Tireur ID=\"31\" Nom=\"HASNER\" Prenom=\"Alix\" DateNaissance=\"31.03.2000\" Sexe=\"F\" Lateralite=\"D\" Nation=\"FRA\" Ligue=\"AQUITAINE\" Club=\"BORDEAUX CAM\" LicenceNat=\"040330280407\" />\n" +
                 "    </Equipe>\n" +
                 "   </Equipes>\n" +

@@ -4,15 +4,29 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import domain.parser.BellePouleParser;
 import domain.parser.EnGardeParser;
 import domain.parser.SportCloudParser;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,24 +48,21 @@ public class Parser {
 
         handleInputFiles();
 
-        if(outputFolder != null ) writeOutputFile();
+
 
     }
 
-    private void writeOutputFile() throws IOException {
+    private void writeOutputFile(JsonToProcess jsonToProcess) throws IOException {
 
         if(outputFolder.isDirectory()) {
-            for (JsonToProcess jsonToProcess : jsonsToProcess) {
+            File outputFile = new File(outputFolder.getPath().concat(File.separator).concat(getFilenameWithJsonExtension(jsonToProcess.inputFile)));
+            logger.info("Writing " + outputFile.getPath());
 
-                File outputFile = new File(outputFolder.getPath().concat(File.separator).concat(getFilenameWithJsonExtension(jsonToProcess.inputFile)));
-                logger.info("Writing " + outputFile.getPath());
+            Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),jsonToProcess.encoding));
 
-                Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile),jsonToProcess.encoding));
-
-                String json = jsonToProcess.json;
-                fw.write(json);
-                fw.close();
-            }
+            String json = jsonToProcess.json;
+            fw.write(json);
+            fw.close();
         } else {
             logger.log(Level.SEVERE, "Output folder is not a directory. Aborting");
         }
@@ -95,10 +106,56 @@ public class Parser {
 
     private void handleThisFile(File file){
         try {
-            jsonsToProcess.add(parse(file));
+
+            JsonToProcess jsonToProcess = parse(file);
+
+            if(outputFolder != null ) writeOutputFile(jsonToProcess);
+
+            if(apiUrl != null)  postJson(jsonToProcess);
+
+
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "File " + file.getName() + " aborted.");
             e.printStackTrace();
+        }
+    }
+
+
+    private void postJson(JsonToProcess jsonToProcess) throws IOException {
+
+        logger.info("Posting " + jsonToProcess.inputFile + " to " + apiUrl);
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+
+        HttpPost post = new HttpPost(apiUrl);
+        StringEntity postingString = new StringEntity(jsonToProcess.json);//gson.tojson() converts your pojo to json
+
+
+
+        CloseableHttpResponse response = null;
+        Scanner in = null;
+        try
+        {
+            post.setEntity(postingString);
+            post.setEntity(postingString);
+            post.setHeader("Content-type", "application/json");
+
+            response = httpClient.execute(post);
+
+            HttpEntity entity = response.getEntity();
+            in = new Scanner(entity.getContent());
+            while (in.hasNext())
+            {
+                System.out.println(in.next());
+
+            }
+            EntityUtils.consume(entity);
+        } finally
+        {
+            in.close();
+            response.close();
         }
     }
 
@@ -139,8 +196,6 @@ public class Parser {
         return filename.substring(filename.lastIndexOf('.'), filename.length());
     }
 
-    private ArrayList<JsonToProcess> jsonsToProcess = new ArrayList<JsonToProcess>();
-
 
 
     @Option(name="-i",usage="Input file",metaVar="INPUT")
@@ -149,9 +204,8 @@ public class Parser {
     @Option(name="-w",usage="Output folder",metaVar="OUTPUT")
     private File outputFolder = null;
 
-    @Option(name="-s",usage="Sends the json to the given API via HTTP PUT")
+    @Option(name="-p",usage="Sends the json to the given API via HTTP PUT")
     private String apiUrl;
-
 
 
     private Logger logger = Logger.getLogger("SportCloud -> ");

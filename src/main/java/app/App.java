@@ -5,20 +5,11 @@ import domain.parser.BellePouleParser;
 import domain.parser.EnGardeParser;
 import domain.parser.SportCloudParser;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
 import org.kohsuke.args4j.CmdLineException;
@@ -33,11 +24,11 @@ import java.util.logging.Logger;
 /**
  * Created by fabricejeannet on 07/06/2016.
  */
-public class Parser {
+public class App {
 
     public static void main(String[] args) throws Exception {
-        Parser parser = new Parser();
-        parser.proceedWithArguments(args);
+        App app = new App();
+        app.proceedWithArguments(args);
     }
 
     private void proceedWithArguments(String[]args) throws CmdLineException, IOException, DocumentException {
@@ -47,8 +38,6 @@ public class Parser {
         cmdLineParser.parseArgument(args);
 
         handleInputFiles();
-
-
 
     }
 
@@ -178,7 +167,7 @@ public class Parser {
             parser = BellePouleParser.create();
         }
 
-        parser.parse(new FileReader(file));
+        parser.parse(file);
 
         String json = parser.getJson();
         Optional<String> encoding = Optional.ofNullable(parser.getEncoding());
@@ -187,7 +176,7 @@ public class Parser {
         JsonToProcess jsonToProcess = new JsonToProcess();
         jsonToProcess.inputFile = file.getName();
         jsonToProcess.json = json;
-        jsonToProcess.encoding = encoding.orElse("iso-8859-1");
+        jsonToProcess.encoding = encoding.orElse(defaultEncoding);
 
         return jsonToProcess;
     }
@@ -206,6 +195,9 @@ public class Parser {
 
     @Option(name="-p",usage="Sends the json to the given API via HTTP PUT")
     private String apiUrl;
+
+    @Option(name="-e",usage="Sets the default encoding used if the parser can't get the file encoding. Default encoding is UTF-8.")
+    private String defaultEncoding="UTF-8";
 
 
     private Logger logger = Logger.getLogger("SportCloud -> ");

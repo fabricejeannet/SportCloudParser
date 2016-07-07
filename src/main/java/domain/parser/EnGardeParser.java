@@ -2,7 +2,7 @@ package domain.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import domain.competition.Fencer;
+import domain.competition.Athlete;
 import domain.competition.Team;
 import domain.competition.Competition;
 import domain.competition.CompetitionInformations;
@@ -13,7 +13,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
-import java.io.Reader;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -36,25 +36,25 @@ public class EnGardeParser implements SportCloudParser {
     private EnGardeParser() {
     }
 
-    public void parse(Reader xmlStream) throws DocumentException {
-        document = saxReader.read(xmlStream);
+    public void parse(File file) throws DocumentException {
+        document = saxReader.read(file);
         root = document.getRootElement();
     }
 
     public boolean isATeamCompetition() {
-        return root.getName().equals(TEAM_COMPETITION);
+        return root.getName().equals(TEAM_COMPETITION_IN_XML);
     }
 
     public boolean isAnIndividualCompetition() {
-        return root.getName().equals(INDIVIDUAL_COMPETITION);
+        return root.getName().equals(INDIVIDUAL_COMPETITION_IN_XML);
     }
 
     public CompetitionInformations getCompetitionInformations(){
         CompetitionInformations competitionInformations = new CompetitionInformations();
-        competitionInformations.date = getJSONDate(root.attributeValue(DATE));
-        competitionInformations.weapon = root.attributeValue(WEAPON);
-        competitionInformations.gender = root.attributeValue(GENDER);
-        competitionInformations.title = root.attributeValue(TITLE);
+        competitionInformations.date = getJSONDate(root.attributeValue(DATE_IN_XML));
+        competitionInformations.weapon = root.attributeValue(WEAPON_IN_XML);
+        competitionInformations.gender = root.attributeValue(GENDER_IN_XML);
+        competitionInformations.title = root.attributeValue(TITLE_IN_XML);
         return competitionInformations;
     }
 
@@ -67,61 +67,77 @@ public class EnGardeParser implements SportCloudParser {
             DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             jsonDate = date.format(outputFormatter);
         } else {
-            jsonDate=UNKNOWN;
+            jsonDate= UNKNOWN_IN_JSON;
         }
 
         return jsonDate;
     }
 
     public List<Team> getTeams() {
-        Element teamsNode  = root.element(TEAMS);
-        List<Element> teamNodes = teamsNode.elements();
-        Iterator<Element> it = teamNodes.iterator();
-
         ArrayList<Team> teams = new ArrayList<Team>();
-        while (it.hasNext()){
-            Element teamNode = it.next();
-            teams.add(getTeam(teamNode));
+        if(isATeamCompetition()) {
+            Element teamsNode  = root.element(TEAMS_IN_XML);
+            List<Element> teamNodes = teamsNode.elements();
+            Iterator<Element> it = teamNodes.iterator();
+
+            while (it.hasNext()){
+                Element teamNode = it.next();
+                teams.add(getTeam(teamNode));
+            }
         }
         return teams;
     }
 
     private Team getTeam(Element teamNode){
         Team team = new Team();
-        team.name = teamNode.attributeValue(NAME);
-        team.clubName = teamNode.attributeValue(CLUB);
-        List<Fencer> fencers = getFencers(teamNode);
-        team.athletes.addAll(fencers);
+        team.name = teamNode.attributeValue(NAME_IN_XML);
+        team.clubName = teamNode.attributeValue(CLUB_IN_XML);
+        List<Athlete> athletes = getTeamAtheletes(teamNode);
+        team.athletes.addAll(athletes);
         return team;
     }
 
-    private List<Fencer> getFencers(Element teamNode){
-        Iterator<Element> fencerIterator = teamNode.elementIterator(FENCER);
-        ArrayList<Fencer> fencers = new ArrayList<Fencer>();
-        while (fencerIterator.hasNext()) {
-            Element thisFencer = fencerIterator.next();
-            Fencer fencer = new Fencer();
-
-            fencer.localId = thisFencer.attributeValue(ID);
-
-            fencer.firstName = formatName(thisFencer.attributeValue(FIRST_NAME));
-            fencer.lastName = formatName(thisFencer.attributeValue(LAST_NAME));
-
-            String sex = thisFencer.attributeValue(GENDER);
-
-            if(MEN_IN_XML.equals(sex)) {
-                fencer.sex = MALE_IN_JSON;
-            } else if (WOMEN_IN_XML.equals(sex)) {
-                fencer.sex = FEMALE_IN_JSON;
-            } else {
-                fencer.sex = OTHER_IN_JSON;
+    public List<Athlete> getAthletes(){
+        List<Athlete> athletes = new ArrayList<Athlete>();
+        if(isAnIndividualCompetition()) {
+            Element athletesNode  = root.element(ATHLETES_IN_XML);
+            List<Element> athleteNodes = athletesNode.elements();
+            Iterator<Element> it = athleteNodes.iterator();
+            while (it.hasNext()){
+                Element athleteNode = it.next();
+                athletes.add(getAthelete(athleteNode));
             }
 
-            fencer.countryCode = thisFencer.attributeValue(COUNTRY_CODE);
-
-            fencers.add(fencer);
         }
-        return fencers;
+        return athletes;
+    }
+
+    private Athlete getAthelete(Element athleteNode) {
+        Athlete athlete = new Athlete();
+        athlete.localId = athleteNode.attributeValue(ID);
+        athlete.firstName = formatName(athleteNode.attributeValue(FIRST_NAME_IN_XML));
+        athlete.lastName = formatName(athleteNode.attributeValue(LAST_NAME_IN_XML));
+        String sex = athleteNode.attributeValue(GENDER_IN_XML);
+        if(MEN_IN_XML.equals(sex)) {
+            athlete.sex = MALE_IN_JSON;
+        } else if (WOMEN_IN_XML.equals(sex)) {
+            athlete.sex = FEMALE_IN_JSON;
+        } else {
+            athlete.sex = OTHER_IN_JSON;
+        }
+        athlete.countryCode = athleteNode.attributeValue(COUNTRY_CODE_IN_XML);
+        return athlete;
+    }
+
+
+    private List<Athlete> getTeamAtheletes(Element teamNode){
+        Iterator<Element> fencerIterator = teamNode.elementIterator(ATHLETE_IN_XML);
+        ArrayList<Athlete> athletes = new ArrayList<Athlete>();
+        while (fencerIterator.hasNext()) {
+            Element thisFencer = fencerIterator.next();
+            athletes.add(getAthelete(thisFencer));
+        }
+        return athletes;
     }
 
 
@@ -153,17 +169,18 @@ public class EnGardeParser implements SportCloudParser {
         Competition competition;
 
         if (isATeamCompetition()) {
-            CompetitionInformations competitionInformations  = getCompetitionInformations();
-
             competition = new TeamCompetition();
-            competition.date = competitionInformations.date;
-            competition.name = competitionInformations.title;
-            competition.sportType = getSportTypeFrom(competitionInformations);
-
             ((TeamCompetition)competition).teams = getTeams();
         } else {
             competition = new IndividualCompetition();
+            ((IndividualCompetition)competition).athletes = getAthletes();
         }
+
+        CompetitionInformations competitionInformations  = getCompetitionInformations();
+        competition.date = competitionInformations.date;
+        competition.name = competitionInformations.title;
+        competition.sportType = getSportTypeFrom(competitionInformations);
+
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -173,12 +190,18 @@ public class EnGardeParser implements SportCloudParser {
     }
 
 
+
+
     public String getSportTypeFrom(CompetitionInformations competitionInformations){
         String sportType = FENCING.concat(".");
         if(competitionInformations.weapon.equals(EPEE_IN_XML)) sportType = sportType.concat(EPEE_IN_JSON);
         if(competitionInformations.weapon.equals(FOIL_IN_XML)) sportType =sportType.concat(FOIL_IN_JSON);
         if(competitionInformations.weapon.equals(SABRE_IN_XML)) sportType =sportType.concat(SABRE_IN_JSON);
-        sportType = sportType.concat(TEAM_IN_JSON);
+        if(isATeamCompetition()) {
+            sportType = sportType.concat(TEAM_IN_JSON);
+        } else {
+            sportType = sportType.concat(INDIVIDUAL_IN_JSON);
+        }
         if(competitionInformations.gender.equals(MEN_IN_XML)) sportType =sportType.concat(MEN_IN_JSON);
         if(competitionInformations.gender.equals(WOMEN_IN_XML)) sportType =sportType.concat(WOMEN_IN_JSON);
         return sportType;
@@ -194,37 +217,38 @@ public class EnGardeParser implements SportCloudParser {
     public static final String FENCING = "fencing";
     public static final String MEN_IN_XML = "M";
     public static final String WOMEN_IN_XML = "F";
+    public static final String EPEE_IN_XML = "E";
+    public static final String FOIL_IN_XML = "F";
+    public static final String SABRE_IN_XML = "S";
 
     public static final String MEN_IN_JSON = "Men";
     public static final String WOMEN_IN_JSON = "Women";
     public static final String MALE_IN_JSON = "male";
     public static final String FEMALE_IN_JSON = "female";
     public static final String OTHER_IN_JSON = "other";
-
     public static final String TEAM_IN_JSON = "Team";
-    public static final String INDIVIDUAL = "Individual";
+    public static final String INDIVIDUAL_IN_JSON = "Individual";
     public static final String EPEE_IN_JSON = "epee";
     public static final String FOIL_IN_JSON = "foil";
     public static final String SABRE_IN_JSON = "sabre";
-    public static final String EPEE_IN_XML = "E";
-    public static final String FOIL_IN_XML = "F";
-    public static final String SABRE_IN_XML = "S";
-    public static final String TEAMS = "Equipes";
-    public static final String FENCER = "Tireur";
-    public static final String NAME = "Nom";
-    public static final String CLUB = "Club";
-    public static final String TEAM_COMPETITION = "CompetitionParEquipes";
-    public static final String INDIVIDUAL_COMPETITION = "CompetitionIndividuelle";
-    public static final String DATE = "Date";
-    public static final String WEAPON = "Arme";
-    public static final String GENDER = "Sexe";
-    public static final String TITLE = "TitreLong";
-    public static final String FIRST_NAME = "Prenom";
-    public static final String LAST_NAME = "Nom";
 
-    public static final String COUNTRY_CODE = "Nation";
+    public static final String TEAMS_IN_XML = "Equipes";
+    public static final String ATHLETE_IN_XML = "Tireur";
+    public static final String NAME_IN_XML = "Nom";
+    public static final String CLUB_IN_XML = "Club";
+    public static final String TEAM_COMPETITION_IN_XML = "CompetitionParEquipes";
+    public static final String INDIVIDUAL_COMPETITION_IN_XML = "CompetitionIndividuelle";
+    public static final String DATE_IN_XML = "Date";
+    public static final String WEAPON_IN_XML = "Arme";
+    public static final String GENDER_IN_XML = "Sexe";
+    public static final String TITLE_IN_XML = "TitreLong";
+    public static final String FIRST_NAME_IN_XML = "Prenom";
+    public static final String LAST_NAME_IN_XML = "Nom";
 
-    public static final String UNKNOWN = "Unknown";
+    public static final String COUNTRY_CODE_IN_XML = "Nation";
+
+    public static final String UNKNOWN_IN_JSON = "Unknown";
+    private static final String ATHLETES_IN_XML = "Tireurs";
 
     private SAXReader saxReader = new SAXReader();
     private Element root;

@@ -1,9 +1,11 @@
 package domain.parser;
 
+import domain.competition.Athlete;
 import domain.competition.Team;
 import domain.competition.CompetitionInformations;
 import org.dom4j.DocumentException;
 
+import java.io.File;
 import java.io.Reader;
 import java.util.List;
 
@@ -16,7 +18,7 @@ public class BellePouleParser implements SportCloudParser{
         return null;
     }
 
-    public void parse(Reader reader) throws DocumentException {
+    public void parse(File file) throws DocumentException {
 
     }
 
@@ -29,6 +31,10 @@ public class BellePouleParser implements SportCloudParser{
     }
 
     public List<Team> getTeams() {
+        return null;
+    }
+
+    public List<Athlete> getAthletes() {
         return null;
     }
 

@@ -7,8 +7,8 @@ import domain.parser.EnGardeParser;
 import domain.parser.SportCloudParser;
 import org.dom4j.DocumentException;
 import org.junit.Test;
-
-import java.io.Reader;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -16,27 +16,26 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Created by fabricejeannet on 06/06/2016.
  */
-public class TestEnGardeParser {
+public class TestEnGardeParserTeamCompetitions {
 
     @Test
-    public void canRecognizeTeamCompetitionXML() throws DocumentException {
+    public void canRecognizeTeamCompetitionXML() throws DocumentException, IOException {
         initializeParser();
         assertThat(parser.isATeamCompetition()).isTrue();
         assertThat(parser.isAnIndividualCompetition()).isFalse();
     }
 
     @Test
-    public void canExtractCompetitionInformations() throws DocumentException {
+    public void canExtractCompetitionInformations() throws DocumentException, IOException {
         parser = EnGardeParser.create();
-        Reader fakeXMLReader = TestFactories.xml().competitionInformations();
-        parser.parse(fakeXMLReader);
+        File fakeFile =  TestFactories.xml().competitionInformations();
+        parser.parse(fakeFile);
 
         CompetitionInformations competitionInformations = parser.getCompetitionInformations();
 
         assertThat(competitionInformations.date).isEqualTo("2016-05-15");
         assertThat(competitionInformations.weapon).isEqualTo("S");
         assertThat(competitionInformations.gender).isEqualTo("F");
-        assertThat(competitionInformations.weapon).isEqualTo("S");
         assertThat(competitionInformations.title).isEqualTo("Championnat de France");
 
         //<CompetitionParEquipes Championnat="FFE" ID="26182" Annee="2015/2016" Arme="S" Sexe="F" Federation="FFE" Organisateur="Thonon" Categorie="C" Date="15.05.2016" TitreCourt="SDC-eq" TitreLong="Championnat de France" URLorganisateur="http://francethononescrimeclub.weebly.com" >
@@ -45,7 +44,7 @@ public class TestEnGardeParser {
     }
 
     @Test
-    public void canExtractTeams() throws DocumentException {
+    public void canExtractTeams() throws DocumentException, IOException {
         initializeParser();
         List<Team> teams =  parser.getTeams();
         Team team = teams.get(0);
@@ -57,10 +56,12 @@ public class TestEnGardeParser {
     }
 
     @Test
-    public void canExtractTeamMembers() throws DocumentException {
+    public void canExtractTeamMembers() throws DocumentException, IOException {
         parser = EnGardeParser.create();
-        Reader fakeXMLReader = TestFactories.xml().oneTeamCompetition();
-        parser.parse(fakeXMLReader);
+
+        File fakeFile =  TestFactories.xml().oneTeamCompetition();
+        parser.parse(fakeFile);
+
         List<Team> teams =  parser.getTeams();
         Team team = teams.get(0);
 
@@ -75,10 +76,10 @@ public class TestEnGardeParser {
 
 
     @Test
-    public void canFormatNames() throws DocumentException {
+    public void canFormatNames() throws DocumentException, IOException {
         parser = EnGardeParser.create();
-        Reader fakeXMLReader = TestFactories.xml().oneTeamCompetition();
-        parser.parse(fakeXMLReader);
+        File fakeFile =  TestFactories.xml().oneTeamCompetition();
+        parser.parse(fakeFile);
         List<Team> teams =  parser.getTeams();
         Team team = teams.get(0);
 
@@ -88,10 +89,10 @@ public class TestEnGardeParser {
 
     }
 
-    public void initializeParser() throws DocumentException {
+    public void initializeParser() throws DocumentException, IOException {
         parser = EnGardeParser.create();
-        Reader fakeXMLReader = TestFactories.xml().completeTeamCompetition();
-        parser.parse(fakeXMLReader);
+        File fakeFile =  TestFactories.xml().completeTeamCompetition();
+        parser.parse(fakeFile);
     }
 
     private SportCloudParser parser;

@@ -7,7 +7,7 @@ import java.util.ArrayList;
  */
 public class Team {
 
-    public ArrayList<Fencer> athletes = new ArrayList<Fencer>();
+    public ArrayList<Athlete> athletes = new ArrayList<Athlete>();
     public String name;
     public String clubName;
 }

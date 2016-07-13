@@ -10,5 +10,5 @@ public class Athlete {
     public String lastName;
     public String sex;
     public String countryCode;
-
+    public String rank;
 }

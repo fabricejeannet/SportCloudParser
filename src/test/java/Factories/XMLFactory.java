@@ -426,10 +426,55 @@ public class XMLFactory {
                 "<!DOCTYPE CompetitionIndividuelle>\n" +
                 "<CompetitionIndividuelle Championnat=\"Circuit\" Annee=\"2006\" Arme=\"S\" Sexe=\"M\" Domaine=\"N\" Federation=\"FFE\" Organisateur=\"SUC\" Categorie=\"S\" Date=\"12.02.2006\" TitreCourt=\"SHS CN Strasbourg\" TitreLong=\"SHS Circuit National Strasbourg\" >\n" +
                 "  <Tireurs>\n" +
-                "    <Tireur ID=\"76\" Nom=\"AGRESTA\" Prenom=\"Renzo\" DateNaissance=\"00.00.1985\" Sexe=\"M\" Nation=\"BRA\" Club=\"BRAZIL\" Classement=\"12\" Statut=\"N\" />\n" +
+                "    <Tireur ID=\"1\" Nom=\"AGRESTA\" Prenom=\"Renzo\" DateNaissance=\"00.00.1985\" Sexe=\"M\" Nation=\"BRA\" Club=\"BRAZIL\" Classement=\"12\" Statut=\"N\" />\n" +
                 "    <Tireur ID=\"2\" Nom=\"ANSTETT\" Prenom=\"Vincent\" DateNaissance=\"26.07.1982\" Sexe=\"M\" Nation=\"FRA\" Ligue=\"ALSACE\" Club=\"STRASBOUR UC\" Classement=\"19\" Statut=\"N\" />\n" +
-                "    <Tireur ID=\"13\" Nom=\"APITHY\" Prenom=\"Bolade\" DateNaissance=\"21.08.1985\" Sexe=\"M\" Nation=\"FRA\" Ligue=\"BOURGOGNE\" Club=\"DIJON ASPTT\" Classement=\"8\" Statut=\"N\" />\n" +
+                "    <Tireur ID=\"3\" Nom=\"APITHY\" Prenom=\"Bolade\" DateNaissance=\"21.08.1985\" Sexe=\"M\" Nation=\"FRA\" Ligue=\"BOURGOGNE\" Club=\"DIJON ASPTT\" Classement=\"8\" Statut=\"N\" />\n" +
                 "</Tireurs>\n" +
+                "<Phases>"+
+                "    <TourDePoules PhaseID=\"TourPoules1\" ID=\"1\" NbDePoules=\"18\" PhaseSuivanteDesQualifies=\"PhaseTableaux1\" NbQualifiesParPoule=\"0\" NbQualifiesParIndice=\"98\" >\n"+
+                "       <Poule ID=\"1\" Piste=\"1\" Date=\"08:00\" >" +
+                "        <Match ID=\"1\" >\n" +
+                "          <Tireur REF=\"1\" Score=\"2\" Statut=\"D\" />\n" +
+                "          <Tireur REF=\"2\" Score=\"5\" Statut=\"V\" />\n" +
+                "        </Match>\n" +
+                "      </Poule>\n"+
+                "       <Poule ID=\"2\" Piste=\"2\" Date=\"08:00\" >" +
+                "        <Match ID=\"1\" >\n" +
+                "          <Tireur REF=\"2\" Score=\"1\" Statut=\"D\" />\n" +
+                "          <Tireur REF=\"3\" Score=\"5\" Statut=\"V\" />\n" +
+                "        </Match>\n" +
+                "      </Poule>\n"+
+                "    </TourDePoules>\n" +
+                "    <TourDePoules PhaseID=\"TourPoules2\" ID=\"2\" NbDePoules=\"18\" PhaseSuivanteDesQualifies=\"PhaseTableaux1\" NbQualifiesParPoule=\"0\" NbQualifiesParIndice=\"98\" >\n"+
+                "       <Poule ID=\"1\" Piste=\"1\" Date=\"08:00\" >" +
+                "        <Match ID=\"1\" >\n" +
+                "          <Tireur REF=\"1\" Score=\"5\" Statut=\"V\" />\n" +
+                "          <Tireur REF=\"2\" Score=\"4\" Statut=\"D\" />\n" +
+                "        </Match>\n" +
+                "      </Poule>\n"+
+                "    </TourDePoules>\n" +
+                "    <PhaseDeTableaux PhaseID=\"PhaseTableaux1\" ID=\"1\" >\n" +
+                "      <Tireur REF=\"1\" RangInitial=\"25\" RangFinal=\"3\" Statut=\"N\" />\n" +
+                "      <Tireur REF=\"2\" RangInitial=\"49\" RangFinal=\"2\" Statut=\"N\" />\n" +
+                "      <Tireur REF=\"3\" RangInitial=\"94\" RangFinal=\"1\" Statut=\"N\" />" +
+                "       <SuiteDeTableaux ID=\"SuiteTab_A\" Titre=\"Direktausscheidung\" NbDeTableaux=\"7\">\n" +
+                "           <Tableau ID=\"A128\" Titre=\"Direktausscheidung mit 128\" Taille=\"128\">\n" +
+                "               <Match ID=\"2\">\n" +
+                "                   <Arbitre REF=\"19\"/>\n" +
+                "                   <Tireur REF=\"1\" Score=\"15\" Statut=\"V\"/>\n" +
+                "                   <Tireur REF=\"2\" Score=\"7\" Statut=\"D\"/>\n" +
+                "               </Match>\n" +
+                "           </Tableau>\n" +
+                "           <Tableau ID=\"A64\" Titre=\"Direktausscheidung mit 64\" Taille=\"64\">\n" +
+                "               <Match ID=\"2\">\n" +
+                "                   <Arbitre REF=\"19\"/>\n" +
+                "                   <Tireur REF=\"2\" Score=\"13\" Statut=\"V\"/>\n" +
+                "                   <Tireur REF=\"3\" Score=\"6\" Statut=\"D\"/>\n" +
+                "               </Match>\n" +
+                "           </Tableau>\n" +
+                "       </SuiteDeTableaux>\n" +
+                "  </PhaseDeTableaux>\n" +
+                "  </Phases>\n" +
                 "</CompetitionIndividuelle>\n";
 
         return getFakeFile(faxeXML);

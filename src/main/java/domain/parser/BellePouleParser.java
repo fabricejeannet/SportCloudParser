@@ -1,5 +1,6 @@
 package domain.parser;
 
+import domain.Match;
 import domain.competition.Athlete;
 import domain.competition.Team;
 import domain.competition.CompetitionInformations;
@@ -47,6 +48,10 @@ public class BellePouleParser implements SportCloudParser{
     }
 
     public String getEncoding() {
+        return null;
+    }
+
+    public List<Match> getMatches() {
         return null;
     }
 }

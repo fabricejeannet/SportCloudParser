@@ -1,6 +1,7 @@
 package domain.parser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import domain.Match;
 import domain.competition.Athlete;
 import domain.competition.Team;
 import domain.competition.CompetitionInformations;
@@ -23,4 +24,6 @@ public interface SportCloudParser {
     String getJson() throws JsonProcessingException;
 
     String getEncoding();
+
+    List<Match> getMatches();
 }

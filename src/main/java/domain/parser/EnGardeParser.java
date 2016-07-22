@@ -132,7 +132,6 @@ public class EnGardeParser implements SportCloudParser {
         return athlete;
     }
 
-
     private String getAthleteRank(String localId){
         Element phasesNode = root.element(PHASES_IN_XML);
         String athleteRank = null;
@@ -162,7 +161,6 @@ public class EnGardeParser implements SportCloudParser {
         return athletes;
     }
 
-
     public String formatName(String name){
         if(name != null) {
             name = name.toLowerCase().trim();
@@ -184,7 +182,6 @@ public class EnGardeParser implements SportCloudParser {
 
         return name;
     }
-
 
     public String getJson() throws JsonProcessingException {
 
@@ -212,9 +209,6 @@ public class EnGardeParser implements SportCloudParser {
         return json;
     }
 
-
-
-
     public String getSportTypeFrom(CompetitionInformations competitionInformations){
         String sportType = FENCING.concat(".");
         if(competitionInformations.weapon.equals(EPEE_IN_XML)) sportType = sportType.concat(EPEE_IN_JSON);
@@ -230,23 +224,24 @@ public class EnGardeParser implements SportCloudParser {
         return sportType;
     }
 
-
     public String getEncoding() {
         return document.getXMLEncoding();
     }
 
     public List<Match> getMatches() {
         List<Match> matches = new ArrayList<Match>();
-        matches.addAll(getPouleMatches());
-        matches.addAll(getTableMatches());
+
+        extractPouleMatches();
+        matches.addAll(pouleMatches);
+
+        extractTableMatches();
+        matches.addAll(tableMatches);
+
         return matches;
     }
 
-
-    private List<Match> getPouleMatches() {
+    private void extractPouleMatches() {
         Element phasesNode = root.element(PHASES_IN_XML);
-        List<Match> allMatches = new ArrayList<Match>();
-
         List<Element> toursDePoulesNode = phasesNode.elements(TOUR_DE_POULES_IN_XML);
 
         currentRoundsOfPool = 1;
@@ -255,27 +250,24 @@ public class EnGardeParser implements SportCloudParser {
             Iterator<Element> poulesIterator = tourDePoulesNode.elementIterator(POULE_IN_XML);
             while (poulesIterator.hasNext()) {
                 Element pouleNode = poulesIterator.next();
-                allMatches.addAll(extractPouleMatches(pouleNode));
+                browsePoule(pouleNode);
             }
             currentRoundsOfPool++;
         }
 
-        return allMatches;
     }
 
-
-
-    private List<Match> extractPouleMatches(Element node) {
+    private void browsePoule(Element node) {
         Iterator<Element> matchesIterator = node.elementIterator(MATCH_IN_XML);
-        List<Match> matches = new ArrayList<Match>();
         while(matchesIterator.hasNext()) {
             Element matchNode = matchesIterator.next();
-            matches.add(extractPouleMatch(matchNode));
+            Match match = extractMatch(matchNode);
+            match.phase = ROUND_OF_POOLS_IN_JSON + "." + currentRoundsOfPool;
+            pouleMatches.add(match);
         }
-        return matches;
     }
 
-    private Match extractPouleMatch(Element matchNode) {
+    private Match extractMatch(Element matchNode) {
         Match match = new Match();
         List<Element> tireurs = matchNode.elements(ATHLETE_IN_XML);
         match.opponent1 = extractOpponent(tireurs.get(0));
@@ -288,50 +280,58 @@ public class EnGardeParser implements SportCloudParser {
         Opponent opponent = new Opponent();
         opponent.localId = element.attributeValue(REF);
         opponent.score = element.attributeValue(SCORE_IN_XML);
-        if(element.attributeValue(STATUT_IN_XML).equals(WINNER_IN_XML)) {
-            opponent.status = WINNER_IN_JSON;
-        } else {
-            opponent.status = LOSER_IN_JSON;
-        }
-        return opponent;
-    }
 
+        String statusInXml = element.attributeValue(STATUT_IN_XML);
 
-    private List<Match> getTableMatches() {
-        Element phasesNode = root.element(PHASES_IN_XML);
-        Element phaseDeTableauxNode = phasesNode.element(PHASES_DE_TABLEAUX_IN_XML);
-        Element suiteDeTableauxNode = phaseDeTableauxNode.element(SUITE_DE_TABLEAUX_IN_XML);
+        boolean athleteDidntWithdraw = statusInXml != null;
 
-        List<Element> tableauxNode = suiteDeTableauxNode.elements(TABLEAU_IN_XML);
-
-        List<Match> allMatches = new ArrayList<Match>();
-
-
-        for (Element tableauNode : tableauxNode) {
-            Iterator<Element> matchNodes = tableauNode.elementIterator(MATCH_IN_XML);
-            String taille = tableauNode.attributeValue(TAILLE_IN_XML);
-
-            while (matchNodes.hasNext()) {
-                Element matchNode = matchNodes.next();
-                Match match = extractTableauMatch(matchNode);
-                match.phase = TABLEAU_IN_JSON;
-                if (taille != null) match.phase = match.phase + "." + taille;
-
-                allMatches.add(match);
+        if (athleteDidntWithdraw) {
+            if(statusInXml.equals(WINNER_IN_XML)) {
+                opponent.outcome = WINNER_IN_JSON;
+            } else if(statusInXml.equals(LOSER_IN_XML)) {
+                opponent.outcome = LOSER_IN_JSON;
+            } else if(statusInXml.equals(WITHDRAWAL_IN_XML)) {
+                opponent.outcome = WITHDRAWAL_INT_JSON;
             }
         }
 
-        return allMatches;
+        return opponent;
     }
 
-    private Match extractTableauMatch(Element matchNode) {
-        Match match = new Match();
-        List<Element> tireurs = matchNode.elements(ATHLETE_IN_XML);
-        match.opponent1 = extractOpponent(tireurs.get(0));
-        match.opponent2 = extractOpponent(tireurs.get(1));
-        match.phase = ROUND_OF_POOLS_IN_JSON + "." + currentRoundsOfPool;
-        return match;
+    private void extractTableMatches() {
+        Element phasesNode = root.element(PHASES_IN_XML);
+        Element phaseDeTableauxNode = phasesNode.element(PHASES_DE_TABLEAUX_IN_XML);
+        List<Element> suitesDeTableauxNode = phaseDeTableauxNode.elements(SUITE_DE_TABLEAUX_IN_XML);
+        browseSuitesDeTableaux(suitesDeTableauxNode);
     }
+
+    private void browseSuitesDeTableaux(List<Element> suitesDeTableauxNode) {
+
+        for (Element suiteDeTableauxNode : suitesDeTableauxNode) {
+            List<Element> tableauxNode = suiteDeTableauxNode.elements(TABLEAU_IN_XML);
+
+            for (Element tableauNode : tableauxNode) {
+                Iterator<Element> matchNodes = tableauNode.elementIterator(MATCH_IN_XML);
+                String taille = tableauNode.attributeValue(TAILLE_IN_XML);
+
+                while (matchNodes.hasNext()) {
+                    Element matchNode = matchNodes.next();
+                    Match match = extractMatch(matchNode);
+                    match.phase = TABLEAU_IN_JSON;
+                    if (taille != null) match.phase = match.phase + "." + taille;
+
+                    tableMatches.add(match);
+                }
+            }
+        }
+
+    }
+
+
+
+    private List<Match> tableMatches = new ArrayList<Match>();
+    private List<Match> pouleMatches = new ArrayList<Match>();
+
 
     public static final String ID = "ID";
     public static final String REF = "REF";
@@ -358,6 +358,7 @@ public class EnGardeParser implements SportCloudParser {
     public static final String LOSER_IN_JSON = "loser";
     public static final String ROUND_OF_POOLS_IN_JSON ="roundsOfPool";
     public static final String TABLEAU_IN_JSON ="directEliminationTable";
+    private static final String WITHDRAWAL_INT_JSON = "Withdrawal";
 
 
     public static final String TEAMS_IN_XML = "Equipes";
@@ -391,6 +392,7 @@ public class EnGardeParser implements SportCloudParser {
     private static final String LOSER_IN_XML = "D";
     private static final String TABLEAU_IN_XML = "Tableau";
     private static final String TAILLE_IN_XML = "Taille";
+    private static final String WITHDRAWAL_IN_XML = "F";
 
     private SAXReader saxReader = new SAXReader();
     private Element root;

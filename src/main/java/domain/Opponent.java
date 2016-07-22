@@ -6,5 +6,5 @@ package domain;
 public class Opponent {
     public String localId;
     public String score;
-    public String status;
+    public String outcome;
 }

@@ -78,50 +78,50 @@ public class TestEnGardeParserIndividualCompetition {
 
         assertThat(match0.opponent1.localId).isEqualTo(athlete0.localId);
         assertThat(match0.opponent1.score).isEqualTo("2");
-        assertThat(match0.opponent1.status).isEqualTo(EnGardeParser.LOSER_IN_JSON);
+        assertThat(match0.opponent1.outcome).isEqualTo(EnGardeParser.LOSER_IN_JSON);
 
         assertThat(match0.opponent2.localId).isEqualTo(athlete1.localId);
         assertThat(match0.opponent2.score).isEqualTo("5");
-        assertThat(match0.opponent2.status).isEqualTo(EnGardeParser.WINNER_IN_JSON);
+        assertThat(match0.opponent2.outcome).isEqualTo(EnGardeParser.WINNER_IN_JSON);
 
         assertThat(match0.phase).isEqualTo(EnGardeParser.ROUND_OF_POOLS_IN_JSON + "." + 1);
 
         assertThat(match1.opponent1.localId).isEqualTo(athlete1.localId);
         assertThat(match1.opponent1.score).isEqualTo("1");
-        assertThat(match1.opponent1.status).isEqualTo(EnGardeParser.LOSER_IN_JSON);
+        assertThat(match1.opponent1.outcome).isEqualTo(EnGardeParser.LOSER_IN_JSON);
 
         assertThat(match1.opponent2.localId).isEqualTo(athlete2.localId);
         assertThat(match1.opponent2.score).isEqualTo("5");
-        assertThat(match1.opponent2.status).isEqualTo(EnGardeParser.WINNER_IN_JSON);
+        assertThat(match1.opponent2.outcome).isEqualTo(EnGardeParser.WINNER_IN_JSON);
         assertThat(match1.phase).isEqualTo(EnGardeParser.ROUND_OF_POOLS_IN_JSON + "." + 1);
 
         assertThat(match2.phase).isEqualTo(EnGardeParser.ROUND_OF_POOLS_IN_JSON + "." + 2);
         assertThat(match2.opponent1.localId).isEqualTo(athlete0.localId);
         assertThat(match2.opponent1.score).isEqualTo("5");
-        assertThat(match2.opponent1.status).isEqualTo(EnGardeParser.WINNER_IN_JSON);
+        assertThat(match2.opponent1.outcome).isEqualTo(EnGardeParser.WINNER_IN_JSON);
 
         assertThat(match2.opponent2.localId).isEqualTo(athlete1.localId);
         assertThat(match2.opponent2.score).isEqualTo("4");
-        assertThat(match2.opponent2.status).isEqualTo(EnGardeParser.LOSER_IN_JSON);
+        assertThat(match2.opponent2.outcome).isEqualTo(EnGardeParser.LOSER_IN_JSON);
 
 
         assertThat(match3.phase).isEqualTo(EnGardeParser.TABLEAU_IN_JSON + "." + 128);
         assertThat(match3.opponent1.localId).isEqualTo(athlete0.localId);
         assertThat(match3.opponent1.score).isEqualTo("15");
-        assertThat(match3.opponent1.status).isEqualTo(EnGardeParser.WINNER_IN_JSON);
+        assertThat(match3.opponent1.outcome).isEqualTo(EnGardeParser.WINNER_IN_JSON);
 
         assertThat(match3.opponent2.localId).isEqualTo(athlete1.localId);
         assertThat(match3.opponent2.score).isEqualTo("7");
-        assertThat(match3.opponent2.status).isEqualTo(EnGardeParser.LOSER_IN_JSON);
+        assertThat(match3.opponent2.outcome).isEqualTo(EnGardeParser.LOSER_IN_JSON);
 
         assertThat(match4.phase).isEqualTo(EnGardeParser.TABLEAU_IN_JSON + "." + 64);
         assertThat(match4.opponent1.localId).isEqualTo(athlete1.localId);
         assertThat(match4.opponent1.score).isEqualTo("13");
-        assertThat(match4.opponent1.status).isEqualTo(EnGardeParser.WINNER_IN_JSON);
+        assertThat(match4.opponent1.outcome).isEqualTo(EnGardeParser.WINNER_IN_JSON);
 
         assertThat(match4.opponent2.localId).isEqualTo(athlete2.localId);
         assertThat(match4.opponent2.score).isEqualTo("6");
-        assertThat(match4.opponent2.status).isEqualTo(EnGardeParser.LOSER_IN_JSON);
+        assertThat(match4.opponent2.outcome).isEqualTo(EnGardeParser.LOSER_IN_JSON);
     }
 
     public void initializeParser() throws DocumentException, IOException {
